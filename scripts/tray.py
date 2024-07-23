@@ -1,9 +1,5 @@
-from PyQt6.QtCore import QSize, Qt, QThread, QObject, QTimer, pyqtSignal as Signal, pyqtSlot as Slot, QTime
-from PyQt6.QtGui import QIcon, QMovie, QAction, QPixmap
-from PyQt6.QtWidgets import (
-    QApplication, QMainWindow, QPushButton, QLabel,
-    QLineEdit, QVBoxLayout, QHBoxLayout, QWidget, QSpinBox,
-    QBoxLayout, QComboBox, QErrorMessage, QFileDialog, QStackedLayout, QSystemTrayIcon, QStyle, QMenu)
+from PyQt6.QtGui import QIcon, QAction
+from PyQt6.QtWidgets import QSystemTrayIcon, QMenu
 
 
 class AppTray(QSystemTrayIcon):

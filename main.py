@@ -5,7 +5,7 @@ import os
 from random import choice
 from pathlib import Path
 
-from PyQt6.QtCore import QSize, Qt, QThread, QObject, QTimer, pyqtSignal as Signal
+from PyQt6.QtCore import QSize, Qt, QThread, QTimer
 from PyQt6.QtGui import QIcon, QMovie, QPixmap
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QPushButton, QLabel,
@@ -15,24 +15,10 @@ from PyQt6.QtWidgets import (
 from parsers.wallscloud_parser import WallsCloud
 from scripts.style import style_sheet
 from scripts.tray import AppTray
+from scripts.searching_processor import SearchingProcessor
 
 ROOT = Path(__file__).resolve().parent
 PARSERS = [WallsCloud]
-
-
-class SearchingProcessor(QObject):
-    finished = Signal()
-    error_signal = Signal(str)
-
-    def __init__(self, start_func, show_error):
-        super().__init__()
-        self.start = start_func
-        self.error_signal.connect(show_error)
-
-    def run(self):
-        self.start()
-        self.finished.emit()
-
 
 class MainWindow(QMainWindow):
     def __init__(self, screen_size: QSize):
