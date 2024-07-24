@@ -1,5 +1,4 @@
 import sys
-
 import ctypes
 import os
 from random import choice
