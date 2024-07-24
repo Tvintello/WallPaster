@@ -20,6 +20,7 @@ from scripts.searching_processor import SearchingProcessor
 ROOT = Path(__file__).resolve().parent
 PARSERS = [WallsCloud]
 
+
 class MainWindow(QMainWindow):
     def __init__(self, screen_size: QSize):
         super().__init__()
