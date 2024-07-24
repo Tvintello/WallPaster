@@ -40,10 +40,10 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
   deploy: 
-    runs-on: window-latest
     needs: build
+    runs-on: window-latest
     steps:
-    - uses: actions/download-artifact@v4
-      name: Get build files
+    - name: Get build files
+      uses: actions/download-artifact@v4
       with: 
         name: build-files
