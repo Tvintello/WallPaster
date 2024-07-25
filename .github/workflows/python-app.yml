@@ -31,7 +31,7 @@ jobs:
         if (Test-Path -Path "requirements.txt") {pip install -r requirements.txt}
     - name: Build application
       run: |
-        pyinstaller --noconfirm --onefile --windowed --icon "icons/icon.ico" --name "WallPaster" main.py
+        pyinstaller --noconfirm --onefile --windowed --icon "icons/icon.ico" --name "WallPaster" --add-data "icons;icons/" main.py
     - name: upload artifact
       uses: actions/upload-artifact@v4.3.4
       with: 
