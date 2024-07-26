@@ -3,6 +3,8 @@ from bs4 import BeautifulSoup
 import requests
 import math
 from random import random
+from PIL import Image
+import io
 
 
 class WallsCloud(Parser):
@@ -16,11 +18,11 @@ class WallsCloud(Parser):
         resolutions = [list(map(int, i.text.split(" x "))) for i in block.find_all("a", recursive=True)]
         return resolutions
 
-    def get_image_bytes(self, link: str, resolution: list):
+    def get_image(self, link: str, resolution: list) -> Image:
         ref_download = f"{link}/{resolution[0]}x{resolution[1]}/download"
         byte = requests.get(ref_download).content
 
-        return byte
+        return Image.open(io.BytesIO(byte))
 
     def get_image_links(self, query: dict):
         pages = self.get_pages(query)
@@ -29,13 +31,13 @@ class WallsCloud(Parser):
         query["page"] = round(random() * pages + 1)
         soup = BeautifulSoup(requests.get(self.url, params=query).content, "html.parser")
         block = soup.find('div', class_="grid-row walls_data")
-        print(query)
+        print("query: ", query)
 
         if block.find("figure"):
             for j in block.find_all("a", class_="wall_link"):
                 images.append(j["href"])
 
-        print(images)
+        print("Image links: ", images)
 
         return images
 

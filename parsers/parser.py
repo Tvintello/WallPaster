@@ -8,7 +8,7 @@ class Parser(ABC):
         pass
 
     @abstractmethod
-    def get_image_bytes(self, link: str, resolution: list) -> bytes:
+    def get_image(self, link: str, resolution: list) -> bytes:
         pass
 
     @abstractmethod
