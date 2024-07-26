@@ -15,6 +15,7 @@ from parsers.wallscloud_parser import WallsCloud
 from scripts.style import style_sheet
 from scripts.tray import AppTray
 from scripts.searching_processor import SearchingProcessor
+from scripts.support import get_image_name
 
 ROOT = Path(__file__).resolve().parent
 PARSERS = [WallsCloud]
@@ -380,26 +381,12 @@ class MainWindow(QMainWindow):
         self.query["q"] = value
         print(self.query)
 
-    @staticmethod
-    def valid_link(link) -> str:
-        forbidden = ["{", "}"]
-        for i in range(len(link)):
-            if link[i] in forbidden:
-                link = link[0:i]
-                break
-
-        return link
-
-    def get_image_name(self, link):
-        return link.split("/")[-2]
-
     def download_image_by_link(self, link) -> str:
-        name = os.path.join(self.directory, self.get_image_name(link) + ".jpg")
+        img = self.parser.get_image(link, self.resolution)
+        path = os.path.join(self.directory, f"{get_image_name(link)}.{img.format.lower()}")
+        img.save(path)
 
-        with open(name, "wb") as f:
-            f.write(self.parser.get_image_bytes(link, self.resolution))
-
-        return name
+        return path
 
     def download_image_by_bytes(self, byte: bytes, name: str) -> str:
         with open(self.directory + name, "wb") as f:
