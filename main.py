@@ -414,6 +414,11 @@ class MainWindow(QMainWindow):
 
 
 if __name__ == "__main__":
+    try:
+        os.chdir(sys._MEIPASS)
+    except AttributeError:
+        os.chdir(ROOT)
+
     app = QApplication(sys.argv)
     app.setStyleSheet(style_sheet)
     screensize = app.primaryScreen().geometry().size()
