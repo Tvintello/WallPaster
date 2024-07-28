@@ -1,7 +1,4 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
-
-name: Python application
+name: Windows builds
 
 on:
   push:
@@ -32,8 +29,10 @@ jobs:
     - name: Build application
       run: |
         pyinstaller --noconfirm --onefile --windowed --icon "icons/icon.ico" --name "WallPaster" --add-data "icons;icons/" main.py
-    - name: upload artifact
+    - name: Prepare artifact
+      run: Rename-Item -Path dist/WallPaster.exe WallPaster.ee
+    - name: Upload artifact
       uses: actions/upload-artifact@v4.3.4
       with: 
-        path: dist/WallPaster.exe
+        path: dist/WallPaster.ee
         name: WallPaster

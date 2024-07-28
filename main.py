@@ -269,7 +269,6 @@ class MainWindow(QMainWindow):
         loading.setFixedSize(32, 32)
         loading.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         loading.setParent(self.blackout)
-        self.loading_gif.start()
 
         layout.addWidget(self.blackout)
 
