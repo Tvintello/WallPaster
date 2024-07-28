@@ -1,3 +1,4 @@
+from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon, QAction
 from PyQt6.QtWidgets import QSystemTrayIcon, QMenu
 
@@ -7,6 +8,11 @@ class AppTray(QSystemTrayIcon):
         super().__init__()
         self.setParent(parent)
         self.setIcon(QIcon("icons/icon.png"))
+        self.activated.connect(self.on_click)
+
+    def on_click(self, event):
+        if event is self.ActivationReason.Trigger:
+            self.parent().show()
 
     def add_tray(self):
         show_action = QAction("Show", self)
