@@ -1,6 +1,21 @@
 import sys
 import os
 from pathlib import Path
+import json
+
+
+def save_json(variant):
+    js = json.dumps(variant)
+    with open("./save.json", "w") as f:
+        f.write(js)
+
+
+def read_json():
+    with open("./save.json") as f:
+        f = f.read()
+        if f:
+            return json.loads(f)
+        return
 
 
 def resource_path(relative_path):

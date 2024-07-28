@@ -1,8 +1,10 @@
+import json
 import sys
 import ctypes
 import os
 from random import choice
 from pathlib import Path
+import json
 
 from PyQt6.QtCore import QSize, Qt, QThread, QTimer
 from PyQt6.QtGui import QIcon, QMovie, QPixmap
@@ -15,7 +17,7 @@ from parsers.wallscloud_parser import WallsCloud
 from scripts.style import style_sheet
 from scripts.tray import AppTray
 from scripts.searching_processor import SearchingProcessor
-from scripts.support import get_image_name
+from scripts.support import get_image_name, save_json, read_json
 
 ROOT = Path(__file__).resolve().parent
 PARSERS = [WallsCloud]
@@ -32,12 +34,19 @@ class MainWindow(QMainWindow):
         self.setStyleSheet("background-color: #303030;")
         self.setWindowIcon(QIcon("icons/icon.png"))
 
+        self.saved = read_json()
+
+        if not self.saved or (isinstance(self.saved, dict) and list(self.saved.keys()) != ["dir", "interval", "resolution"]):
+            self.directory = os.path.join(ROOT, "images")
+            self.saved = {"dir": self.directory, "interval": 60000,
+                          "resolution": [screen_size.width(), screen_size.height()]}
+            save_json(self.saved)
         self.query = {"q": "", "page": 1}
         self.url = PARSERS[0].url
         self.parser = PARSERS[0]()
         self.images = self.parser.get_image_links(self.query)
-        self.resolution = [screen_size.width(), screen_size.height()]
-        self.directory = fr"{ROOT}\images"
+        self.resolution = self.saved["resolution"]
+        self.directory = self.saved["dir"]
         self.loading_gif = QMovie("icons/loading.gif")
         self.is_recently_loaded = False
         self.search_thread = QThread()
@@ -46,9 +55,10 @@ class MainWindow(QMainWindow):
         self.second_timer.start(1000)
         self.slide_timer = QTimer()
         self.slide_timer.timeout.connect(self.run)
-        self.slide_timer.setInterval(60000)
+        self.slide_timer.setInterval(self.saved["interval"])
         self.tray_icon = AppTray(self)
         self.tray_icon.add_tray()
+        self.current_image = ""
 
         # window initialization
         self.container = QWidget()
@@ -111,7 +121,7 @@ class MainWindow(QMainWindow):
         image_lay.setAlignment(Qt.AlignmentFlag.AlignHCenter)
 
         self.image_button.setStyleSheet("padding: 5px;")
-        self.image_button.pressed.connect(self.run_safely)
+        self.image_button.pressed.connect(self.run)
         image_lay.addWidget(self.image_button)
 
         layout.addLayout(image_lay)
@@ -269,6 +279,7 @@ class MainWindow(QMainWindow):
 
         self.interval_widget.setMinimum(1)
         self.interval_widget.setMaximum(17000)
+        self.interval_widget.setValue(self.saved["interval"] // 60000)
         self.interval_widget.editingFinished.connect(self.set_interval)
 
         interval.addWidget(self.interval_label)
@@ -280,6 +291,8 @@ class MainWindow(QMainWindow):
         value = self.interval_widget.value()
         ms = value * 60 * 1000
         self.slide_timer.setInterval(ms)
+        self.saved["interval"] = ms
+        save_json(self.saved)
         print(self.slide_timer.interval())
 
     def show_error(self, text):
@@ -294,26 +307,22 @@ class MainWindow(QMainWindow):
         event.ignore()
         self.hide()
 
-    def run_safely(self):
-        if not self.images:
-            print("IMAGES WERE NOT FOUND")
-            self.searching.error_signal.emit("WARNING: images with these themes were not found")
-            self.main_lay.setCurrentWidget(self.main_page)
-            return
-
-        self.run()
-
     def run(self):
         self.search_thread = QThread()
         self.searching = SearchingProcessor(self.set_random_image, self.show_error)
         self.searching.moveToThread(self.search_thread)
-        self.search_thread.started.connect(self.searching.run)
+        self.search_thread.started.connect(lambda: self.searching.run(self.images, self.main_lay, self.main_page,
+                                                                      self.blackout, self.resolution,
+                                                                      self.parser.get_available_resolutions))
         self.searching.finished.connect(self.search_thread.quit)
         self.searching.finished.connect(self.searching.deleteLater)
         self.search_thread.finished.connect(self.search_thread.deleteLater)
         self.search_thread.start()
+        self.main_lay.setCurrentWidget(self.blackout)
 
     def set_directory(self, value):
+        self.saved["dir"] = value
+        save_json(self.saved)
         self.directory = value
         print(value)
 
@@ -323,11 +332,16 @@ class MainWindow(QMainWindow):
         if dir:
             self.directory = dir
 
+        self.saved["dir"] = self.directory
+        save_json(self.saved)
+
         self.directory_edit.setText(self.directory)
         print(self.directory)
 
     def on_resolution_changed(self):
-        self.resolution = [str(self.width_number.value()), str(self.height_number.value())]
+        self.resolution = [self.width_number.value(), self.height_number.value()]
+        self.saved["resolution"] = self.resolution
+        save_json(self.saved)
         print(self.resolution)
 
     def on_orientation_changed(self, value):
@@ -347,26 +361,14 @@ class MainWindow(QMainWindow):
         print(self.slide_timer.interval())
 
     def on_timer_started(self):
-        self.run_safely()
+        self.run()
         self.stop_button.setEnabled(True)
         self.slide_timer.start()
 
-    def check_resolution(self, link):
-        count = 0
-        while not (self.resolution in self.parser.get_available_resolutions(link)):
-            link = self.images[count]
-            count += 1
-
-            if count == len(self.images):
-                self.searching.error_signal.emit("WARNING: images with these themes were not found")
-                return
-
-    def set_random_image(self):
+    def set_random_image(self, link):
         print("START")
         print(self.query)
-        self.main_lay.setCurrentWidget(self.blackout)  # show loading page
-        link = choice(self.images)
-        print(link)
+        print("Image: ", link)
         image = self.download_image_by_link(link)
         self.set_wallpaper(image)
         self.main_lay.setCurrentWidget(self.main_page)  # hide loading page
@@ -412,3 +414,5 @@ if __name__ == "__main__":
     window = MainWindow(screensize)
     window.show()
     app.exec()
+
+input("Выйти")
