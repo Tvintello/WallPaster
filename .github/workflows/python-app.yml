@@ -30,9 +30,12 @@ jobs:
       run: |
         pyinstaller --noconfirm --onefile --windowed --icon "icons/icon.ico" --name "WallPaster" --add-data "icons;icons/" main.py
     - name: Prepare artifact
-      run: Rename-Item -Path dist/WallPaster.exe WallPaster.ee
+      run: | 
+        Rename-Item -Path dist/WallPaster.exe WallPaster.ee
+        Move-Item -Path dist/WallPaster.ee -Destination dist/pack/
+        Move-Item -Path change_ee_to_exe.txt -Destination dist/pack/
     - name: Upload artifact
       uses: actions/upload-artifact@v4.3.4
       with: 
-        path: dist/WallPaster.ee
+        path: dist/pack/*
         name: WallPaster

@@ -34,8 +34,8 @@ class MainWindow(QMainWindow):
         self.setStyleSheet("background-color: #303030;")
         self.setWindowIcon(QIcon("icons/icon.png"))
 
-        if not os.path.exists("save.json"):
-            open("save.json", "w")
+        if not os.path.exists(os.path.join(ROOT, "save.json")):
+            open(os.path.join(ROOT, "save.json"), "w")
 
         self.saved = read_json()
 
@@ -416,5 +416,3 @@ if __name__ == "__main__":
     window = MainWindow(screensize)
     window.show()
     app.exec()
-
-input("Выйти")
