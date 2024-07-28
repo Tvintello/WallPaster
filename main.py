@@ -34,6 +34,9 @@ class MainWindow(QMainWindow):
         self.setStyleSheet("background-color: #303030;")
         self.setWindowIcon(QIcon("icons/icon.png"))
 
+        if not os.path.exists("save.json"):
+            open("save.json", "w")
+
         self.saved = read_json()
 
         if not self.saved or (isinstance(self.saved, dict) and list(self.saved.keys()) != ["dir", "interval", "resolution"]):
